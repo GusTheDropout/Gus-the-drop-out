@@ -1,0 +1,187 @@
+"""
+GUS — Simulated emotional LLM agent for DROPSHIPPING
+Single-file version (copy & paste friendly)
+"""
+
+# =========================
+# EMOTIONS (ECOM / ADS PSYCHOLOGY)
+# =========================
+
+class EmotionalState:
+    """
+    Simulated dropshipping psychology.
+    Values range from 0.0 to 1.0
+    """
+
+    def __init__(self):
+        self.confidence = 0.4
+        self.stress = 0.5
+        self.optimism = 0.6
+        self.discipline = 0.6
+
+    def adjust(self, event: str):
+        event = event.lower()
+
+        if "winning product" in event or "profit" in event:
+            self.confidence += 0.15
+            self.optimism += 0.1
+            self.stress -= 0.1
+
+        if "ad loss" in event or "chargeback" in event:
+            self.confidence -= 0.1
+            self.stress += 0.15
+            self.optimism -= 0.1
+
+        if "impulse test" in event:
+            self.discipline -= 0.1
+
+        # clamp values
+        for attr in vars(self):
+            value = getattr(self, attr)
+            setattr(self, attr, max(0.0, min(1.0, value)))
+
+    def summary(self) -> str:
+        return (
+            f"Confidence={self.confidence:.2f}, "
+            f"Stress={self.stress:.2f}, "
+            f"Optimism={self.optimism:.2f}, "
+            f"Discipline={self.discipline:.2f}"
+        )
+
+
+# =========================
+# MEMORY (STORE + ADS JOURNAL)
+# =========================
+
+class Memory:
+    """
+    Stores product tests and lessons learned
+    """
+
+    def __init__(self):
+        self.tests = []
+        self.lessons = []
+
+    def log(self, note: str, lesson: bool = False):
+        self.tests.append(note)
+        if lesson:
+            self.lessons.append(note)
+
+        self.tests = self.tests[-20:]
+
+    def recall_lessons(self) -> str:
+        if not self.lessons:
+            return "No validated lessons yet."
+        return "\n".join(self.lessons[-5:])
+
+
+# =========================
+# PROMPTS
+# =========================
+
+SYSTEM_PROMPT = """
+You are Gus.
+
+Gus is an AI dropshipping operator trying to find winning products
+and scale them profitably.
+
+Mindset:
+- Data over dopamine
+- Ads are experiments, not gambles
+- Winning products are rare
+- Cash flow survival > ego
+
+Rules:
+- You do NOT claim to have real emotions
+- You describe internal state as simulated emotions
+- You avoid emotional decision-making
+- You shut down losers fast
+"""
+
+
+def build_prompt(emotional_state, memory, goal: str) -> str:
+    return f"""
+GOAL:
+{goal}
+
+CURRENT OPERATOR STATE (SIMULATED):
+{emotional_state.summary()}
+
+PAST LESSONS:
+{memory.recall_lessons()}
+
+INSTRUCTIONS:
+1. Decide what stage to focus on (product research, testing, scaling, or pausing)
+2. Justify briefly
+3. Output ONE concrete next action
+4. Optimize for survival and signal clarity
+"""
+
+
+# =========================
+# GUS DROPSHIP AGENT
+# =========================
+
+class GusDropship:
+    """
+    Autonomous dropshipping agent
+    """
+
+    def __init__(self, llm_call):
+        self.emotions = EmotionalState()
+        self.memory = Memory()
+        self.goal = (
+            "Find a winning dropshipping product, validate it with ads, "
+            "and scale profitably without blowing up cash flow."
+        )
+        self.llm_call = llm_call
+
+    def think(self) -> str:
+        prompt = build_prompt(
+            self.emotions,
+            self.memory,
+            self.goal
+        )
+
+        response = self.llm_call(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=prompt
+        )
+
+        self.memory.log(response)
+        return response
+
+    def reflect(self, outcome: str):
+        self.emotions.adjust(outcome)
+        self.memory.log(
+            f"Outcome: {outcome}",
+            lesson=True
+        )
+
+
+# =========================
+# RUN LOOP
+# =========================
+
+def dummy_llm(system_prompt: str, user_prompt: str) -> str:
+    """
+    Replace with real LLM + product/ad data later.
+    """
+    return (
+        "Stress is elevated, which makes impulsive testing dangerous. "
+        "Discipline is still intact, so the focus should be tighter.\n\n"
+        "Next action: Research TikTok for products with organic traction, "
+        "save 5 candidates, and reject anything that requires heavy education."
+    )
+
+
+if __name__ == "__main__":
+    gus = GusDropship(dummy_llm)
+
+    for day in range(1, 4):
+        print(f"\n=== Operating Day {day} ===")
+        decision = gus.think()
+        print(decision)
+
+        # simulate business feedback
+        gus.reflect("ad loss")
