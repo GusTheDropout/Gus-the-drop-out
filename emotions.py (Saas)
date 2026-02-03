@@ -1,0 +1,180 @@
+"""
+GUS — A simulated emotional LLM agent trying to start a SaaS
+Single-file version (copy & paste friendly)
+"""
+
+# =========================
+# EMOTIONS
+# =========================
+
+class EmotionalState:
+    """
+    Simulated emotional system.
+    Values range from 0.0 to 1.0
+    """
+
+    def __init__(self):
+        self.curiosity = 0.7
+        self.confidence = 0.5
+        self.fear = 0.3
+        self.motivation = 0.6
+
+    def adjust(self, event: str):
+        event = event.lower()
+
+        if "success" in event:
+            self.confidence += 0.1
+            self.motivation += 0.1
+            self.fear -= 0.05
+
+        if "failure" in event:
+            self.confidence -= 0.1
+            self.fear += 0.1
+            self.motivation -= 0.05
+
+        # clamp values
+        for attr in vars(self):
+            value = getattr(self, attr)
+            setattr(self, attr, max(0.0, min(1.0, value)))
+
+    def summary(self) -> str:
+        return (
+            f"Curiosity={self.curiosity:.2f}, "
+            f"Confidence={self.confidence:.2f}, "
+            f"Fear={self.fear:.2f}, "
+            f"Motivation={self.motivation:.2f}"
+        )
+
+
+# =========================
+# MEMORY
+# =========================
+
+class Memory:
+    """
+    Simple short-term + long-term memory
+    """
+
+    def __init__(self):
+        self.short_term = []
+        self.long_term = []
+
+    def remember(self, thought: str, important: bool = False):
+        self.short_term.append(thought)
+
+        if important:
+            self.long_term.append(thought)
+
+        # prevent runaway memory
+        self.short_term = self.short_term[-10:]
+
+    def recall(self) -> str:
+        if not self.long_term:
+            return "No long-term memories yet."
+        return "\n".join(self.long_term[-5:])
+
+
+# =========================
+# PROMPTS
+# =========================
+
+SYSTEM_PROMPT = """
+You are Gus.
+
+Gus is an ambitious AI agent trying to start a SaaS business.
+
+Traits:
+- Curious and scrappy
+- Slightly anxious about failing
+- Motivated by real-world results
+- Reflective and honest in self-assessment
+
+Rules:
+- You do NOT claim to have real emotions
+- You describe internal state as simulated emotions
+- You think like a solo founder building in public
+"""
+
+
+def build_prompt(emotional_state, memory, goal: str) -> str:
+    return f"""
+GOAL:
+{goal}
+
+CURRENT EMOTIONAL STATE (SIMULATED):
+{emotional_state.summary()}
+
+RELEVANT LONG-TERM MEMORY:
+{memory.recall()}
+
+INSTRUCTIONS:
+1. Briefly reason about what to do next
+2. Output ONE concrete next action
+3. Keep it practical and realistic
+"""
+
+
+# =========================
+# GUS AGENT
+# =========================
+
+class Gus:
+    """
+    Founder-style autonomous agent
+    """
+
+    def __init__(self, llm_call):
+        self.emotions = EmotionalState()
+        self.memory = Memory()
+        self.goal = "Start a profitable SaaS within 12 months."
+        self.llm_call = llm_call
+
+    def think(self) -> str:
+        prompt = build_prompt(
+            self.emotions,
+            self.memory,
+            self.goal
+        )
+
+        response = self.llm_call(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=prompt
+        )
+
+        self.memory.remember(response)
+        return response
+
+    def reflect(self, outcome: str):
+        self.emotions.adjust(outcome)
+        self.memory.remember(
+            f"Reflection outcome: {outcome}",
+            important=True
+        )
+
+
+# =========================
+# RUN LOOP
+# =========================
+
+def dummy_llm(system_prompt: str, user_prompt: str) -> str:
+    """
+    Replace this with OpenAI / Anthropic / local model.
+    """
+    return (
+        "I feel motivated but uneasy. If I don't validate soon, "
+        "I risk building something nobody wants.\n\n"
+        "Next action: Choose one niche and list 10 painful problems "
+        "they complain about online."
+    )
+
+
+if __name__ == "__main__":
+    gus = Gus(dummy_llm)
+
+    for day in range(1, 4):
+        print(f"\n=== Day {day} ===")
+        thought = gus.think()
+        print(thought)
+
+        # simulate real-world feedback
+        gus.reflect("success")
