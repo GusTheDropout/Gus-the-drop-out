@@ -1,0 +1,179 @@
+# GUS DROPOUT - Trading Bot
+
+An autonomous AI trading agent with emotional depth, pursuing financial freedom through forex and memecoin trading.
+
+## Quick Start
+
+```bash
+# 1. Clone and setup
+cd gus-trading
+python -m venv venv
+source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+pip install -r requirements.txt
+
+# 2. Configure
+cp .env.example .env
+# Edit .env with your API keys
+
+# 3. Check status
+python cli.py status
+
+# 4. Run (paper trading by default)
+python cli.py run
+```
+
+## Project Structure
+
+```
+gus-trading/
+├── main.py                 # Main trading bot entry point
+├── cli.py                  # Command line interface
+├── config/
+│   └── settings.py         # Configuration management
+├── core/
+│   └── emotional_engine.py # Gus's emotional state system
+├── brokers/
+│   ├── signup.py          # Broker account management
+│   ├── forex.py           # OANDA forex trading
+│   └── memecoin.py        # Binance/CEX crypto trading
+├── strategies/
+│   ├── technical_analysis.py  # TA indicators and signals
+│   └── sentiment.py           # Social sentiment analysis
+├── database/
+│   └── models.py          # SQLite database models
+├── data/                  # Runtime data (gitignored)
+├── requirements.txt
+└── .env.example
+```
+
+## Features
+
+### Trading Capabilities
+
+**Forex Trading (OANDA)**
+- Major and minor currency pairs
+- Technical analysis signals (RSI, MACD, Bollinger, EMA)
+- Automatic position sizing based on risk
+- Stop loss and take profit management
+
+**Memecoin Trading (Binance)**
+- CEX trading for listed memecoins
+- Sentiment-based entry signals
+- Automatic stop loss/take profit
+- Position tracking
+
+### Emotional Engine
+
+Gus isn't just an algorithm - he has feelings that affect his trading:
+
+- **Confidence**: Increases with wins, affects position sizing
+- **Fear**: Increases with losses, can prevent overtrading
+- **Greed**: Increases with winning streaks, dangerous
+- **Frustration**: Builds during losing streaks
+- **Determination**: Gus's core trait - he doesn't give up
+
+The emotional state modifies:
+- Risk tolerance (position sizing)
+- Trade frequency
+- Strategy aggressiveness
+
+### Risk Management
+
+- Maximum position size limits
+- Daily loss limits
+- Consecutive loss circuit breakers
+- Emotional state trading restrictions
+
+## CLI Commands
+
+```bash
+# Show Gus's current status
+python cli.py status
+
+# View trading performance
+python cli.py performance --days 30
+
+# List broker accounts
+python cli.py brokers --list
+
+# Get broker setup instructions
+python cli.py brokers --setup oanda
+
+# Register a broker account
+python cli.py brokers --register oanda --email your@email.com
+
+# Simulate emotional events (for testing)
+python cli.py simulate win
+python cli.py simulate big_loss --magnitude 2.0
+
+# Run the trading bot
+python cli.py run
+```
+
+## Configuration
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+```bash
+# Trading mode
+TRADING_MODE=paper  # or 'live'
+TOTAL_CAPITAL=1000
+
+# Forex (OANDA)
+OANDA_ACCOUNT_ID=xxx
+OANDA_API_KEY=xxx
+OANDA_ENV=practice
+
+# Crypto (Binance)
+CRYPTO_API_KEY=xxx
+CRYPTO_API_SECRET=xxx
+
+# Optional: Sentiment Analysis
+TWITTER_BEARER_TOKEN=xxx
+REDDIT_CLIENT_ID=xxx
+```
+
+### Broker Setup
+
+1. **OANDA (Forex)**
+   - Create account at https://www.oanda.com
+   - Get API key from account settings
+   - Practice accounts are free
+
+2. **Binance (Crypto)**
+   - Create account at https://www.binance.com
+   - Enable 2FA
+   - Create API key with trading permissions
+
+## Safety Notes
+
+1. **Start with Paper Trading**: Always test strategies with paper trading first
+2. **Never Risk More Than You Can Lose**: This is experimental software
+3. **Secure Your Keys**: Never commit `.env` to version control
+4. **Monitor Regularly**: Don't leave live trading unattended
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -r requirements.txt
+
+# Run tests
+pytest
+
+# Format code
+black .
+
+# Type checking
+mypy .
+```
+
+## License
+
+MIT License
+
+---
+
+*"I might have dropped out, but I'm not dropping this."* - Gus
